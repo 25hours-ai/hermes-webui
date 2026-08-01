@@ -1280,6 +1280,8 @@ def list_dir(workspace: Path, rel: str='.'):
         with follow_symlinks=False (else None); ``reachable`` is False when a
         follow_symlinks=True stat raised (broken target or symlink loop)."""
         if is_symlink:
+            # Keep the transport rank aligned with _sort_key_de/_sort_key_p.
+            workspace_sort_rank = 0
             if raw_link is None:
                 return
             # A symlink whose follow-stat raised (ELOOP / broken target) can never
@@ -1328,6 +1330,7 @@ def list_dir(workspace: Path, rel: str='.'):
                     'path': display_path,
                     'type': 'symlink',
                     'is_dir': False,
+                    'workspace_sort_rank': workspace_sort_rank,
                     'target_outside_workspace': True,
                     'mtime_ns': mtime_ns,
                     'birthtime_ns': _birthtime_ns(lstat_result) if lstat_result is not None else None,
@@ -1341,6 +1344,7 @@ def list_dir(workspace: Path, rel: str='.'):
                     'type': 'symlink',
                     'target': str(link_target),
                     'is_dir': is_dir,
+                    'workspace_sort_rank': workspace_sort_rank,
                     'target_outside_workspace': False,
                     'mtime_ns': mtime_ns,
                     'birthtime_ns': _birthtime_ns(lstat_result) if lstat_result is not None else None,
@@ -1357,6 +1361,7 @@ def list_dir(workspace: Path, rel: str='.'):
                 entry_path = rel + '/' + name
             if lstat_result is not None:
                 is_file = stat.S_ISREG(lstat_result.st_mode)
+                workspace_sort_rank = 2 if is_file else 1
                 size = lstat_result.st_size if is_file else None
                 mtime_ns = lstat_result.st_mtime_ns
                 is_dir_entry = stat.S_ISDIR(lstat_result.st_mode)
@@ -1364,6 +1369,7 @@ def list_dir(workspace: Path, rel: str='.'):
                 size = None
                 mtime_ns = None
                 is_dir_entry = False
+                workspace_sort_rank = 1
             entries.append({
                 'name': name,
                 'path': entry_path,
@@ -1371,6 +1377,7 @@ def list_dir(workspace: Path, rel: str='.'):
                 'size': size,
                 'mtime_ns': mtime_ns,
                 'birthtime_ns': _birthtime_ns(lstat_result) if lstat_result is not None else None,
+                'workspace_sort_rank': workspace_sort_rank,
             })
 
     if _DIR_FD_OK:
