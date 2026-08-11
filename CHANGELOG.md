@@ -3,6 +3,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **Layout test helper no longer flags scroll-reachable fields as off-viewport.** The shared `assert_layout_sane` degenerate check reported a false "interactive element is off-viewport" for an input that sits below the fold at rest but is reachable by scrolling an `overflow-y:auto` ancestor (e.g. a tall dialog on a short landscape viewport). It now exempts elements whose off-viewport edge is absorbed by a scrollable ancestor, while still flagging genuinely-unreachable elements (no scroll escape). This removes a CI-environment-sensitive flake on the Kanban board settings modal at 480×320. (internal test infra)
+
 ### Changed
 
 - **Transparent Stream copy buttons now confirm success in place.** The tool-event and thinking copy controls flash a check for ~1.5s after a successful copy — the same feedback the normal chat copy buttons already give — then revert to the copy glyph. The confirmation is now clearly visible without hover (important on touch), stays correct across live-row reconciliation, cleans up if its row is torn down mid-feedback, and is never serialized into a restored session snapshot. Thanks @Stacey2911. (#6037)
