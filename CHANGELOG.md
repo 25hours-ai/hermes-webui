@@ -3,6 +3,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **Layout test helper no longer flags scroll-reachable fields as off-viewport.** The shared `assert_layout_sane` degenerate check reported a false "interactive element is off-viewport" for an input that sits below the fold at rest but is reachable by scrolling an `overflow-y:auto` ancestor (e.g. a tall dialog on a short landscape viewport). It now exempts elements whose off-viewport edge is absorbed by a scrollable ancestor, while still flagging genuinely-unreachable elements (no scroll escape). The Kanban board settings modal layout test also drops its synthetic 480×320 short-landscape case (a viewport no real device uses, whose sub-fold geometry was environment-marginal and CI-flaky); real desktop/tablet/narrow viewports still assert the layout. (internal test infra)
+
 ### Changed
 
 - **Agent replay is now byte-accurate without ever exposing internal provider text to the browser.** The exact provider-facing reply text (`api_content`) is preserved through the internal session store so agent-to-agent replay is faithful, while every client-facing surface (HTTP responses, SSE journal + runner streams, shares) strips it and its provenance aliases through the public projection. Includes a maintainer hardening pass: session redaction is selective (transcript fields are scrubbed; operational fields such as the workspace path pass through unchanged, so a workspace path that merely contains credential-shaped text is no longer masked into an invalid path), and the runner-backed SSE relay now projects payloads before emit so `api_content` cannot leak through that path. Thanks @franksong2702. (#6757)
